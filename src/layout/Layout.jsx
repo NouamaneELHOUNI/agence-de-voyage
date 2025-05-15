@@ -9,7 +9,7 @@ export default function Layout() {
         <SidebarProvider>
             <AppSidebar />
             <SidebarInset>
-                <div className="flex flex-col min-h-full">
+                <div className="flex flex-col min-h-full p-4">
                     <Header />
                     <Outlet />
                 </div>

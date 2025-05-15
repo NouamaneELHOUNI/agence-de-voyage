@@ -1,34 +1,34 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-// import { AccountForm } from "@/components/settings/account-form"
-// import { NotificationsForm } from "@/components/settings/notifications-form"
-// import { AppearanceForm } from "@/components/settings/appearance-form"
-// import { ProfileForm } from "@/components/settings/profile-form"
+import { ProfileForm } from "./components/profileForm"
+import { AccountForm } from "./components/accountForm"
+import { NotificationsForm } from "./components/notificationsForm"
+import { AppearanceForm } from "./components/appearanceForm"
 
 export default function SettingsPage() {
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 p-8" >
             <div>
-                <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
-                <p className="text-muted-foreground">Manage your account settings and set your preferences.</p>
+                <h1 className="text-3xl font-bold tracking-tight">الإعدادات</h1>
+                <p className="text-muted-foreground">قم بإدارة إعدادات حسابك وقم بتعيين تفضيلاتك.</p>
             </div>
 
-            <Tabs defaultValue="profile" className="space-y-4">
+            <Tabs defaultValue="profile" className="space-y-4" dir="rtl">
                 <TabsList>
-                    <TabsTrigger value="profile">Profile</TabsTrigger>
-                    <TabsTrigger value="account">Account</TabsTrigger>
-                    <TabsTrigger value="notifications">Notifications</TabsTrigger>
-                    <TabsTrigger value="appearance">Appearance</TabsTrigger>
+                    <TabsTrigger value="profile">الملف الشخصي</TabsTrigger>
+                    <TabsTrigger value="account">الحساب</TabsTrigger>
+                    <TabsTrigger value="notifications">الإشعارات</TabsTrigger>
+                    <TabsTrigger value="appearance">المظهر</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="profile">
                     <Card>
                         <CardHeader>
-                            <CardTitle>Profile</CardTitle>
-                            <CardDescription>Manage your public profile information.</CardDescription>
+                            <CardTitle>الملف الشخصي</CardTitle>
+                            <CardDescription>قم بإدارة معلومات ملفك الشخصي العامة.</CardDescription>
                         </CardHeader>
                         <CardContent>
-                            {/* <ProfileForm /> */}
+                            <ProfileForm />
                         </CardContent>
                     </Card>
                 </TabsContent>
@@ -36,11 +36,11 @@ export default function SettingsPage() {
                 <TabsContent value="account">
                     <Card>
                         <CardHeader>
-                            <CardTitle>Account</CardTitle>
-                            <CardDescription>Update your account settings and security preferences.</CardDescription>
+                            <CardTitle>الحساب</CardTitle>
+                            <CardDescription>قم بتحديث إعدادات حسابك وتفضيلات الأمان.</CardDescription>
                         </CardHeader>
                         <CardContent>
-                            {/* <AccountForm /> */}
+                            <AccountForm />
                         </CardContent>
                     </Card>
                 </TabsContent>
@@ -48,11 +48,11 @@ export default function SettingsPage() {
                 <TabsContent value="notifications">
                     <Card>
                         <CardHeader>
-                            <CardTitle>Notifications</CardTitle>
-                            <CardDescription>Configure how you receive notifications.</CardDescription>
+                            <CardTitle>الإشعارات</CardTitle>
+                            <CardDescription>قم بتكوين كيفية تلقي الإشعارات.</CardDescription>
                         </CardHeader>
                         <CardContent>
-                            {/* <NotificationsForm /> */}
+                            <NotificationsForm />
                         </CardContent>
                     </Card>
                 </TabsContent>
@@ -60,11 +60,11 @@ export default function SettingsPage() {
                 <TabsContent value="appearance">
                     <Card>
                         <CardHeader>
-                            <CardTitle>Appearance</CardTitle>
-                            <CardDescription>Customize how the dashboard looks and feels.</CardDescription>
+                            <CardTitle>المظهر</CardTitle>
+                            <CardDescription>خصص مظهر ولوحة التحكم.</CardDescription>
                         </CardHeader>
                         <CardContent>
-                            {/* <AppearanceForm /> */}
+                            <AppearanceForm />
                         </CardContent>
                     </Card>
                 </TabsContent>

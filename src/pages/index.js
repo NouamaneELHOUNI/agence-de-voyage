@@ -3,4 +3,16 @@ import Login from "@/pages/auth/login/login";
 import ForgetPassword from "@/pages/auth/forgetPassword/forgetPassword";
 import Dashboard from "@/pages/dashboard/index";
 import Setting from "@/pages/setting/setting";
-export { Index, Login, ForgetPassword, Dashboard, Setting };
+import NotFound404 from "@/pages/error/404";
+import Forbidden403 from "@/pages/error/403";
+import ServerError500 from "@/pages/error/500";
+export {
+  Index,
+  Login,
+  ForgetPassword,
+  Dashboard,
+  Setting,
+  NotFound404,
+  Forbidden403,
+  ServerError500,
+};

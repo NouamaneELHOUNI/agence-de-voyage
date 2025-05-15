@@ -25,18 +25,18 @@ export default function Dashboard() {
                 <Button>
                     setting
                 </Button>
+                </Link>
                 <Button
                     className="px-4 py-2 rounded bg-destructive text-white font-bold hover:bg-destructive/80"
                     onClick={() => setDialogOpen(true)}
                 >
                     تسجيل الخروج
                 </Button>
-                <LogoutDialog
-                    open={dialogOpen}
-                    onClose={() => setDialogOpen(false)}
-                    onConfirm={handleLogout}
-                />
-            </Link>
+            <LogoutDialog
+                open={dialogOpen}
+                onClose={() => setDialogOpen(false)}
+                onConfirm={handleLogout}
+            />
         </div>
     );
 }
