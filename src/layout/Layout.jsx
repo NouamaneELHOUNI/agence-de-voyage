@@ -35,7 +35,7 @@ const sidebarItems = [
         items: [
             {
                 title: "جميع المستخدمين",
-                url: "/users/all",
+                url: "/users",
             },
             {
                 title: "إضافة مستخدم",
