@@ -34,12 +34,6 @@ function UserDropDown() {
                     </a>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                    <a href="/client" className="flex items-center">
-                        <Users className="h-4 w-4 ml-2 text-muted-foreground" />
-                        العملاء
-                    </a>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
                     <a href="/settings" className="flex items-center">
                         <Settings className="h-4 w-4 ml-2 text-muted-foreground" />
                         الإعدادات

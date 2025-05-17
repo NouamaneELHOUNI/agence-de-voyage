@@ -4,7 +4,6 @@ import useAuthStore from "@/store/authStore";
 import LogoutDialog from "@/components/ui/LogoutDialog";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { User } from "lucide-react";
 
 
 export default function Dashboard() {
