@@ -2,9 +2,6 @@
 
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
-import useClientStore from "@/store/clientStore"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import {
     Table,
     TableBody,
@@ -13,282 +10,399 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table"
+import { Button } from "@/components/ui/button"
 import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+    Tabs,
+    TabsContent,
+    TabsList,
+    TabsTrigger,
+} from "@/components/ui/tabs"
 import {
-    Card,
-    CardContent
-} from "@/components/ui/card"
-import {
-    MoreHorizontal,
-    Plus,
-    Search,
-    UserRound,
-    Mail,
-    Phone,
-    Calendar,
-    Trash2,
-    Eye,
-    Edit2
-} from "lucide-react"
-import { motion } from "framer-motion"
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
-import { Skeleton } from "@/components/ui/skeleton"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import {
+    Trash2,
+    RefreshCw,
+    Edit,
+    Eye,
+    Search,
+    UserPlus,
+    X,
+    Loader2
+} from "lucide-react"
+import useClientStore from "@/store/clientStore"
+import { PageHeader } from "@/components/page-header"
 
-export default function Clients() {
+export default function ClientsPage() {
     const navigate = useNavigate()
-    const [searchTerm, setSearchTerm] = useState("")
-    const [debouncedSearch, setDebouncedSearch] = useState("")
-    const { clients, loading, error, fetchClients, searchClients, deleteClient } = useClientStore()
+    const [activeTab, setActiveTab] = useState("active")
+    const [searchQuery, setSearchQuery] = useState("")
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+    const [restoreDialogOpen, setRestoreDialogOpen] = useState(false)
+    const [selectedClientId, setSelectedClientId] = useState(null)
+    const [isLoading, setIsLoading] = useState(false)
+    
+    const {
+        clients,
+        deletedClients,
+        loading,
+        error,
+        fetchClients,
+        fetchDeletedClients,
+        softDeleteClient,
+        restoreClient,
+        searchClients
+    } = useClientStore()
 
-    // Fetch clients on mount
+    // Set document title
     useEffect(() => {
-        fetchClients(10, true)
-    }, [fetchClients])
+        document.title = "إدارة العملاء | وكالة السفر";
+    }, []);
 
-    // Debounce search
     useEffect(() => {
-        const timer = setTimeout(() => {
-            setDebouncedSearch(searchTerm)
-        }, 500)
+        // Load clients on component mount
+        const loadClients = async () => {
+            setIsLoading(true)
+            await fetchClients(20, true)
+            await fetchDeletedClients(20, true)
+            setIsLoading(false)
+        }
+        
+        loadClients()
+    }, [fetchClients, fetchDeletedClients])
 
-        return () => clearTimeout(timer)
-    }, [searchTerm])
-
-    // Handle search
-    useEffect(() => {
-        if (debouncedSearch) {
-            searchClients(debouncedSearch)
+    const handleSearch = async (e) => {
+        e.preventDefault()
+        setIsLoading(true)
+        
+        if (searchQuery.trim() === "") {
+            await fetchClients(20, true)
+            await fetchDeletedClients(20, true)
         } else {
-            fetchClients(10, true)
+            await searchClients(searchQuery, true)
         }
-    }, [debouncedSearch, searchClients, fetchClients])
-
-    // Handle load more
-    const handleLoadMore = () => {
-        fetchClients(10)
+        
+        setIsLoading(false)
     }
 
-    // Handle delete
-    const handleDelete = async (clientId) => {
-        if (window.confirm("هل أنت متأكد من حذف هذا العميل؟")) {
-            const result = await deleteClient(clientId)
-            if (result.success) {
-                console.log("تم حذف العميل بنجاح")
-            } else {
-                console.error("فشل في حذف العميل:", result.error)
-            }
-        }
+    const handleClearSearch = async () => {
+        setSearchQuery("")
+        setIsLoading(true)
+        await fetchClients(20, true)
+        await fetchDeletedClients(20, true)
+        setIsLoading(false)
     }
 
-    // Animation variants
-    const containerVariants = {
-        hidden: { opacity: 0 },
-        show: {
-            opacity: 1,
-            transition: {
-                staggerChildren: 0.1
-            }
+    const handleSoftDelete = (clientId) => {
+        setSelectedClientId(clientId)
+        setDeleteDialogOpen(true)
+    }
+
+    const confirmSoftDelete = async () => {
+        setIsLoading(true)
+        try {
+            await softDeleteClient(selectedClientId)
+            setDeleteDialogOpen(false)
+        } finally {
+            setIsLoading(false)
+            setSelectedClientId(null)
         }
     }
 
-    const itemVariants = {
-        hidden: { opacity: 0, y: 20 },
-        show: { opacity: 1, y: 0 }
+    const handleRestore = (clientId) => {
+        setSelectedClientId(clientId)
+        setRestoreDialogOpen(true)
+    }
+
+    const confirmRestore = async () => {
+        setIsLoading(true)
+        try {
+            await restoreClient(selectedClientId)
+            setRestoreDialogOpen(false)
+        } finally {
+            setIsLoading(false)
+            setSelectedClientId(null)
+        }
+    }
+
+    const navigateToClientDetails = (clientId) => {
+        navigate(`/clients/show/${clientId}`)
+    }
+
+    const navigateToEditClient = (clientId) => {
+        navigate(`/clients/edit/${clientId}`)
+    }
+
+    const formatDate = (dateString) => {
+        if (!dateString) return "غير محدد"
+        return new Date(dateString).toLocaleDateString("en-EN")
     }
 
     return (
-        <div className="container mx-auto py-6 space-y-6 rtl">
-            <motion.div
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="flex justify-between items-center"
-            >
-                <h1 className="text-2xl font-bold">العملاء</h1>
-                <Button
-                    onClick={() => navigate("/clients/add")}
-                    className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"
-                >
-                    <Plus className="ml-2 h-4 w-4" />
-                    إضافة عميل
-                </Button>
-            </motion.div>
-
-            <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.2 }}
-                className="flex items-center space-x-2"
-            >
-                <div className="relative flex-1">
-                    <Search className="absolute right-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                    <Input
-                        placeholder="البحث عن عملاء..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="pr-8"
-                    />
-                </div>
-            </motion.div>
-
-            {error && (
-                <motion.div
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="bg-destructive/15 text-destructive p-3 rounded-md text-right"
-                >
-                    {error}
-                </motion.div>
-            )}
-
-            <Card className="border rounded-lg overflow-hidden shadow-sm">
-                <CardContent className="p-0">
-                    {loading && clients.length === 0 ? (
-                        <div className="p-6 space-y-4">
-                            {[1, 2, 3, 4].map((i) => (
-                                <div key={i} className="flex items-center space-x-4 rtl:space-x-reverse">
-                                    <Skeleton className="h-12 w-12 rounded-full" />
-                                    <div className="space-y-2">
-                                        <Skeleton className="h-4 w-[250px]" />
-                                        <Skeleton className="h-4 w-[200px]" />
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    ) : clients.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center py-12 px-4">
-                            <UserRound className="h-16 w-16 text-muted-foreground/60 mb-4" />
-                            <h3 className="text-xl font-medium text-center mb-2">لا يوجد عملاء</h3>
-                            <p className="text-muted-foreground text-center max-w-sm">
-                                لا يوجد عملاء متاحين حالياً. انقر على "إضافة عميل" لإنشاء عميل جديد.
-                            </p>
-                            <Button
-                                onClick={() => navigate("/clients/add")}
-                                className="mt-4"
-                                variant="outline"
-                            >
-                                <Plus className="ml-2 h-4 w-4" />
-                                إضافة عميل
-                            </Button>
-                        </div>
-                    ) : (
-                        <div className="bg-background/40">
-                            <Table dir="rtl">
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead className="text-right">الاسم</TableHead>
-                                        <TableHead className="text-right">البريد الإلكتروني</TableHead>
-                                        <TableHead className="text-right">الهاتف</TableHead>
-                                        <TableHead className="text-right">تاريخ الإنشاء</TableHead>
-                                        <TableHead className="w-[50px]"></TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    <motion.div
-                                        variants={containerVariants}
-                                        initial="hidden"
-                                        animate="show"
-                                        className="contents"
+        <>
+            <div className="w-full space-y-4" dir="rtl">
+                <PageHeader 
+                    title="إدارة العملاء"
+                    description="قائمة بجميع عملاء وكالة السفر الخاصة بك"
+                    actions={
+                        <Button 
+                            onClick={() => navigate('/clients/add')} 
+                            className="flex items-center gap-2"
+                        >
+                            <UserPlus className="h-4 w-4" />
+                            <span>إضافة عميل جديد</span>
+                        </Button>
+                    }
+                />
+                
+                <Card>
+                    <CardHeader className="pb-2">
+                        <form onSubmit={handleSearch} className="flex gap-2">
+                            <div className="relative flex-1">
+                                <Search className="absolute right-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                                <Input
+                                    placeholder="البحث عن عميل بالاسم، البريد الإلكتروني، أو رقم الهاتف..."
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    className="pr-9"
+                                />
+                                {searchQuery && (
+                                    <button 
+                                        type="button" 
+                                        onClick={handleClearSearch}
+                                        className="absolute left-3 top-2.5"
                                     >
-                                        {clients.map((client) => (
-                                            <motion.tr
-                                                key={client.id}
-                                                variants={itemVariants}
-                                                className="group hover:bg-muted/50 cursor-pointer"
-                                                onClick={() => navigate(`/clients/${client.id}`)}
-                                            >
-                                                <TableCell className="font-medium flex items-center space-x-2 rtl:space-x-reverse py-4">
-                                                    <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center">
-                                                        <UserRound className="h-4 w-4" />
-                                                    </div>
-                                                    <span>{client.name}</span>
-                                                </TableCell>
-                                                <TableCell className="flex items-center space-x-2 rtl:space-x-reverse">
-                                                    <Mail className="h-4 w-4 text-muted-foreground" />
-                                                    <span>{client.email}</span>
-                                                </TableCell>
-                                                <TableCell className="flex items-center space-x-2 rtl:space-x-reverse">
-                                                    <Phone className="h-4 w-4 text-muted-foreground" />
-                                                    <span dir="ltr">{client.phone}</span>
-                                                </TableCell>
-                                                <TableCell>
-                                                    <Badge variant="outline" className="flex items-center space-x-1 rtl:space-x-reverse">
-                                                        <Calendar className="h-3 w-3" />
-                                                        <span dir="ltr">{new Date(client.createdAt).toLocaleDateString('ar-SA')}</span>
-                                                    </Badge>
-                                                </TableCell>
-                                                <TableCell>
-                                                    <DropdownMenu>
-                                                        <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                                                            <Button variant="ghost" className="h-8 w-8 p-0">
-                                                                <MoreHorizontal className="h-4 w-4" />
-                                                            </Button>
-                                                        </DropdownMenuTrigger>
-                                                        <DropdownMenuContent align="end">
-                                                            <DropdownMenuItem
-                                                                onClick={(e) => {
-                                                                    e.stopPropagation();
-                                                                    navigate(`/clients/${client.id}`);
-                                                                }}
-                                                                className="flex items-center rtl:space-x-reverse"
+                                        <X className="h-4 w-4 text-muted-foreground" />
+                                    </button>
+                                )}
+                            </div>
+                            <Button type="submit" disabled={isLoading}>
+                                {isLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                                بحث
+                            </Button>
+                        </form>
+                    </CardHeader>
+                    
+                    <CardContent>
+                        <Tabs defaultValue="active" value={activeTab} onValueChange={setActiveTab} dir="rtl">
+                            <TabsList className="mb-4">
+                                <TabsTrigger value="active">العملاء النشطون ({clients.length})</TabsTrigger>
+                                <TabsTrigger value="deleted">العملاء المحذوفون ({deletedClients.length})</TabsTrigger>
+                            </TabsList>
+                            
+                            <TabsContent value="active">
+                                {isLoading || loading ? (
+                                    <div className="text-center py-8">
+                                        <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2 text-primary" />
+                                        <p className="text-muted-foreground">جاري تحميل بيانات العملاء...</p>
+                                    </div>
+                                ) : clients.length === 0 ? (
+                                    <div className="text-center py-16 border rounded-md">
+                                        <UserPlus className="h-12 w-12 mx-auto text-muted-foreground opacity-20 mb-4" />
+                                        <h3 className="text-lg font-medium mb-1">لا يوجد عملاء</h3>
+                                        <p className="text-muted-foreground mb-4">لم يتم العثور على أي عملاء. قم بإضافة عملاء جدد للبدء.</p>
+                                        <Button onClick={() => navigate('/clients/add')}>
+                                            إضافة عميل جديد
+                                        </Button>
+                                    </div>
+                                ) : (
+                                    <div className="rounded-md border overflow-hidden">
+                                        <Table dir="rtl">
+                                            <TableHeader>
+                                                <TableRow>
+                                                    <TableHead>الاسم</TableHead>
+                                                    <TableHead>رقم الهاتف</TableHead>
+                                                    <TableHead>البريد الإلكتروني</TableHead>
+                                                    <TableHead className="hidden md:table-cell">المدينة</TableHead>
+                                                    <TableHead className="hidden md:table-cell">البلد</TableHead>
+                                                    <TableHead>الحالة</TableHead>
+                                                    <TableHead className="hidden md:table-cell">تاريخ الإنشاء</TableHead>
+                                                    <TableHead>الإجراءات</TableHead>
+                                                </TableRow>
+                                            </TableHeader>
+                                            <TableBody>
+                                                {clients.map((client) => (
+                                                    <TableRow key={client.id}>
+                                                        <TableCell className="font-medium">
+                                                            {client.clients_name || "غير محدد"}
+                                                        </TableCell>
+                                                        <TableCell dir="ltr" className="text-right">{client.clients_tel || "غير محدد"}</TableCell>
+                                                        <TableCell className="hidden sm:table-cell">{client.clients_email || "غير محدد"}</TableCell>
+                                                        <TableCell className="hidden md:table-cell">{client.clients_city || "غير محدد"}</TableCell>
+                                                        <TableCell className="hidden md:table-cell">{client.clients_country || "غير محدد"}</TableCell>
+                                                        <TableCell>
+                                                            <Badge 
+                                                                variant={client.clients_status === "active" 
+                                                                    ? "success" 
+                                                                    : client.clients_status === "inactive" 
+                                                                        ? "secondary" 
+                                                                        : "outline"}
                                                             >
-                                                                <Eye className="h-4 w-4 ml-2" />
-                                                                <span>عرض التفاصيل</span>
-                                                            </DropdownMenuItem>
-                                                            <DropdownMenuItem
-                                                                onClick={(e) => {
-                                                                    e.stopPropagation();
-                                                                    navigate(`/clients/edit/${client.id}`);
-                                                                }}
-                                                                className="flex items-center rtl:space-x-reverse"
-                                                            >
-                                                                <Edit2 className="h-4 w-4 ml-2" />
-                                                                <span>تعديل</span>
-                                                            </DropdownMenuItem>
-                                                            <DropdownMenuItem
-                                                                className="text-destructive flex items-center rtl:space-x-reverse"
-                                                                onClick={(e) => {
-                                                                    e.stopPropagation();
-                                                                    handleDelete(client.id);
-                                                                }}
-                                                            >
-                                                                <Trash2 className="h-4 w-4 ml-2" />
-                                                                <span>حذف</span>
-                                                            </DropdownMenuItem>
-                                                        </DropdownMenuContent>
-                                                    </DropdownMenu>
-                                                </TableCell>
-                                            </motion.tr>
-                                        ))}
-                                    </motion.div>
-                                </TableBody>
-                            </Table>
-                        </div>
-                    )}
-                </CardContent>
-            </Card>
+                                                                {client.clients_status === "active" 
+                                                                    ? "نشط" 
+                                                                    : client.clients_status === "inactive" 
+                                                                        ? "غير نشط" 
+                                                                        : client.clients_status || "غير محدد"}
+                                                            </Badge>
+                                                        </TableCell>
+                                                        <TableCell className="hidden md:table-cell">
+                                                            {formatDate(client.date_created)}
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            <div className="flex items-center gap-1">
+                                                                <Button 
+                                                                    variant="ghost" 
+                                                                    size="icon" 
+                                                                    title="عرض بيانات العميل"
+                                                                    onClick={() => navigateToClientDetails(client.id)}
+                                                                >
+                                                                    <Eye className="h-4 w-4" />
+                                                                </Button>
+                                                                <Button 
+                                                                    variant="ghost" 
+                                                                    size="icon" 
+                                                                    title="تعديل بيانات العميل"
+                                                                    onClick={() => navigateToEditClient(client.id)}
+                                                                >
+                                                                    <Edit className="h-4 w-4" />
+                                                                </Button>
+                                                                <Button 
+                                                                    variant="ghost" 
+                                                                    size="icon" 
+                                                                    title="حذف العميل"
+                                                                    onClick={() => handleSoftDelete(client.id)}
+                                                                    className="text-destructive"
+                                                                >
+                                                                    <Trash2 className="h-4 w-4" />
+                                                                </Button>
+                                                            </div>
+                                                        </TableCell>
+                                                    </TableRow>
+                                                ))}
+                                            </TableBody>
+                                        </Table>
+                                    </div>
+                                )}
+                            </TabsContent>
+                            
+                            <TabsContent value="deleted">
+                                {isLoading || loading ? (
+                                    <div className="text-center py-8">
+                                        <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2 text-primary" />
+                                        <p className="text-muted-foreground">جاري تحميل بيانات العملاء المحذوفين...</p>
+                                    </div>
+                                ) : deletedClients.length === 0 ? (
+                                    <div className="text-center py-12 border rounded-md">
+                                        <h3 className="text-lg font-medium mb-1">لا يوجد عملاء محذوفين</h3>
+                                        <p className="text-muted-foreground">لم يتم العثور على أي عملاء محذوفين.</p>
+                                    </div>
+                                ) : (
+                                    <div className="rounded-md border overflow-hidden">
+                                        <Table dir="rtl">
+                                            <TableHeader>
+                                                <TableRow>
+                                                    <TableHead>الاسم</TableHead>
+                                                    <TableHead>رقم الهاتف</TableHead>
+                                                    <TableHead>البريد الإلكتروني</TableHead>
+                                                    <TableHead className="hidden md:table-cell">المدينة</TableHead>
+                                                    <TableHead className="hidden md:table-cell">تاريخ الحذف</TableHead>
+                                                    <TableHead>الإجراءات</TableHead>
+                                                </TableRow>
+                                            </TableHeader>
+                                            <TableBody>
+                                                {deletedClients.map((client) => (
+                                                    <TableRow key={client.id}>
+                                                        <TableCell className="font-medium">
+                                                            {client.clients_name || "غير محدد"}
+                                                        </TableCell>
+                                                        <TableCell dir="ltr" className="text-right">{client.clients_tel || "غير محدد"}</TableCell>
+                                                        <TableCell className="hidden sm:table-cell">{client.clients_email || "غير محدد"}</TableCell>
+                                                        <TableCell className="hidden md:table-cell">{client.clients_city || "غير محدد"}</TableCell>
+                                                        <TableCell className="hidden md:table-cell">
+                                                            {formatDate(client.date_deleted)}
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            <div className="flex items-center gap-1">
+                                                                <Button 
+                                                                    variant="ghost" 
+                                                                    size="icon" 
+                                                                    title="عرض بيانات العميل"
+                                                                    onClick={() => navigateToClientDetails(client.id)}
+                                                                >
+                                                                    <Eye className="h-4 w-4" />
+                                                                </Button>
+                                                                <Button 
+                                                                    variant="ghost" 
+                                                                    size="icon" 
+                                                                    title="استعادة العميل"
+                                                                    onClick={() => handleRestore(client.id)}
+                                                                    className="text-primary"
+                                                                >
+                                                                    <RefreshCw className="h-4 w-4" />
+                                                                </Button>
+                                                            </div>
+                                                        </TableCell>
+                                                    </TableRow>
+                                                ))}
+                                            </TableBody>
+                                        </Table>
+                                    </div>
+                                )}
+                            </TabsContent>
+                        </Tabs>
+                    </CardContent>
+                </Card>
+            </div>
 
-            {clients.length > 0 && !loading && (
-                <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.3 }}
-                    className="flex justify-center"
-                >
-                    <Button
-                        variant="outline"
-                        onClick={handleLoadMore}
-                        disabled={loading}
-                        className="min-w-[150px]"
-                    >
-                        {loading ? "جاري التحميل..." : "تحميل المزيد"}
-                    </Button>
-                </motion.div>
-            )}
-        </div>
+            {/* Soft Delete Confirmation Dialog */}
+            <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+                <DialogContent className="text-right" dir="rtl">
+                    <DialogHeader>
+                        <DialogTitle>تأكيد حذف العميل</DialogTitle>
+                        <DialogDescription>
+                            هل أنت متأكد من رغبتك في حذف هذا العميل؟ يمكنك استعادته لاحقاً من قائمة العملاء المحذوفين.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setDeleteDialogOpen(false)} disabled={isLoading}>
+                            إلغاء
+                        </Button>
+                        <Button variant="destructive" onClick={confirmSoftDelete} disabled={isLoading}>
+                            {isLoading ? <Loader2 className="h-4 w-4 animate-spin ml-2" /> : null}
+                            حذف
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* Restore Confirmation Dialog */}
+            <Dialog open={restoreDialogOpen} onOpenChange={setRestoreDialogOpen}>
+                <DialogContent className="text-right" dir="rtl">
+                    <DialogHeader>
+                        <DialogTitle>تأكيد استعادة العميل</DialogTitle>
+                        <DialogDescription>
+                            هل أنت متأكد من رغبتك في استعادة هذا العميل إلى قائمة العملاء النشطين؟
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setRestoreDialogOpen(false)} disabled={isLoading}>
+                            إلغاء
+                        </Button>
+                        <Button variant="default" onClick={confirmRestore} disabled={isLoading}>
+                            {isLoading ? <Loader2 className="h-4 w-4 animate-spin ml-2" /> : null}
+                            استعادة
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+        </>
     )
 } 

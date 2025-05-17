@@ -1,286 +1,110 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { useNavigate, useParams } from "react-router-dom"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import * as z from "zod"
-import useClientStore from "@/store/clientStore"
-import { Button } from "@/components/ui/button"
-import {
-    Form,
-    FormControl,
-    FormDescription,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage,
-} from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { ArrowLeft, Save, UserRound, Phone, Mail, MapPin, FileText, Loader2 } from "lucide-react"
-import { motion } from "framer-motion"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import ClientForm from "@/components/clients/ClientForm"
 import { useToast } from "@/components/ui/use-toast"
-import { Skeleton } from "@/components/ui/skeleton"
-
-const clientFormSchema = z.object({
-    name: z.string().min(2, {
-        message: "يجب أن يحتوي الاسم على حرفين على الأقل.",
-    }),
-    email: z.string().email({
-        message: "يرجى إدخال عنوان بريد إلكتروني صالح.",
-    }),
-    phone: z.string().min(10, {
-        message: "يجب أن يحتوي رقم الهاتف على 10 أرقام على الأقل.",
-    }),
-    address: z.string().optional(),
-    notes: z.string().max(500, {
-        message: "يجب ألا تزيد الملاحظات عن 500 حرف.",
-    }).optional(),
-})
+import { PageHeader } from "@/components/page-header"
+import { Button } from "@/components/ui/button"
+import { ArrowRight, Loader2 } from "lucide-react"
+import useClientStore from "@/store/clientStore"
 
 export default function EditClientPage() {
     const navigate = useNavigate()
-    const { id: clientId } = useParams()
-    const { currentClient, loading, error, fetchClient, updateClient } = useClientStore()
+    const { id } = useParams()
     const { toast } = useToast()
+    const [isLoading, setIsLoading] = useState(true)
+    const { fetchClient, updateClient, currentClient, loading } = useClientStore()
 
-    const form = useForm({
-        resolver: zodResolver(clientFormSchema),
-        defaultValues: {
-            name: "",
-            email: "",
-            phone: "",
-            address: "",
-            notes: "",
-        },
-    })
-
-    // Fetch client data
     useEffect(() => {
         const loadClient = async () => {
-            const result = await fetchClient(clientId)
-            if (result.success && result.data) {
-                form.reset(result.data)
-            } else if (!result.success) {
+            setIsLoading(true)
+            try {
+                const result = await fetchClient(id)
+                if (!result.success) {
+                    toast({
+                        title: "خطأ في تحميل البيانات",
+                        description: "لم يتم العثور على بيانات العميل",
+                        variant: "destructive",
+                    })
+                    navigate("/clients")
+                }
+            } finally {
+                setIsLoading(false)
+            }
+        }
+
+        loadClient()
+    }, [id, fetchClient, navigate, toast])
+
+    // Set document title
+    useEffect(() => {
+        document.title = "تعديل بيانات العميل | وكالة السفر";
+    }, []);
+
+    const handleSubmit = async (data) => {
+        try {
+            const result = await updateClient(id, data)
+            
+            if (result.success) {
                 toast({
-                    title: "فشل في تحميل بيانات العميل",
-                    description: result.error || "لم يتم العثور على العميل",
+                    title: "تم تحديث البيانات",
+                    description: "تم تحديث بيانات العميل بنجاح",
+                    variant: "success",
+                })
+                
+                navigate("/clients")
+            } else {
+                toast({
+                    title: "حدث خطأ",
+                    description: result.error || "حدث خطأ أثناء تحديث بيانات العميل",
                     variant: "destructive",
                 })
             }
-        }
-        loadClient()
-    }, [clientId, fetchClient, form, toast])
-
-    async function onSubmit(data) {
-        const result = await updateClient(clientId, data)
-        if (result.success) {
+        } catch (error) {
+            console.error("Error updating client:", error)
             toast({
-                title: "تم تحديث العميل بنجاح",
-                description: "تم تحديث بيانات العميل بنجاح",
-                variant: "success",
-            })
-            navigate("/clients")
-        } else {
-            toast({
-                title: "فشل في تحديث العميل",
-                description: result.error || "حدث خطأ أثناء محاولة تحديث العميل",
+                title: "حدث خطأ",
+                description: "حدث خطأ غير متوقع أثناء تحديث بيانات العميل",
                 variant: "destructive",
             })
         }
     }
 
-    const formFields = [
-        {
-            name: "name",
-            label: "الاسم الكامل",
-            placeholder: "أدخل الاسم الكامل للعميل",
-            icon: <UserRound className="h-4 w-4" />
-        },
-        {
-            name: "email",
-            label: "البريد الإلكتروني",
-            placeholder: "أدخل البريد الإلكتروني للعميل",
-            icon: <Mail className="h-4 w-4" />
-        },
-        {
-            name: "phone",
-            label: "رقم الهاتف",
-            placeholder: "أدخل رقم هاتف العميل",
-            icon: <Phone className="h-4 w-4" />
-        },
-        {
-            name: "address",
-            label: "العنوان",
-            placeholder: "أدخل عنوان العميل",
-            isTextArea: true,
-            icon: <MapPin className="h-4 w-4" />
-        },
-        {
-            name: "notes",
-            label: "ملاحظات",
-            placeholder: "إضافة أي ملاحظات إضافية حول العميل",
-            description: "ملاحظات اختيارية حول العميل. الحد الأقصى 500 حرف.",
-            isTextArea: true,
-            icon: <FileText className="h-4 w-4" />
-        },
-    ]
-
-    const formVariants = {
-        hidden: { opacity: 0 },
-        visible: {
-            opacity: 1,
-            transition: {
-                staggerChildren: 0.1
-            }
-        }
-    }
-
-    const fieldVariants = {
-        hidden: { opacity: 0, y: 20 },
-        visible: { opacity: 1, y: 0 }
-    }
-
-    if (error) {
+    if (isLoading || loading) {
         return (
-            <div className="container mx-auto py-6 rtl">
-                <motion.div
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="bg-destructive/15 text-destructive p-6 rounded-md text-center"
-                >
-                    <h3 className="text-xl font-bold mb-2">خطأ</h3>
-                    <p>{error}</p>
-                    <Button
-                        variant="outline"
-                        onClick={() => navigate("/clients")}
-                        className="mt-4"
-                    >
-                        العودة إلى قائمة العملاء
-                    </Button>
-                </motion.div>
+            <div className="flex items-center justify-center h-[50vh]" dir="rtl">
+                <div className="text-center">
+                    <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-primary" />
+                    <p className="text-muted-foreground">جاري تحميل بيانات العميل...</p>
+                </div>
             </div>
         )
     }
 
     return (
-        <div className="container mx-auto py-6 space-y-6 rtl">
-            <motion.div
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="flex items-center space-x-4 rtl:space-x-reverse"
-            >
-                <Button
-                    variant="ghost"
-                    onClick={() => navigate(-1)}
-                    className="p-0"
-                >
-                    <ArrowLeft className="h-4 w-4 ml-2" />
-                    رجوع
-                </Button>
-                <h1 className="text-2xl font-bold">تعديل العميل</h1>
-            </motion.div>
-
-            <Card className="border shadow-sm">
-                <CardHeader className="pb-4">
-                    <CardTitle className="text-xl flex items-center">
-                        <UserRound className="ml-2 h-5 w-5 text-primary" />
-                        تعديل معلومات العميل
-                    </CardTitle>
-                </CardHeader>
-                <CardContent>
-                    {loading && !currentClient ? (
-                        <div className="space-y-6">
-                            {[1, 2, 3, 4, 5].map((i) => (
-                                <div key={i} className="space-y-2">
-                                    <Skeleton className="h-4 w-[100px]" />
-                                    <Skeleton className="h-10 w-full" />
-                                </div>
-                            ))}
-                        </div>
-                    ) : (
-                        <Form {...form}>
-                            <form onSubmit={form.handleSubmit(onSubmit)}>
-                                <motion.div
-                                    className="space-y-6"
-                                    variants={formVariants}
-                                    initial="hidden"
-                                    animate="visible"
-                                >
-                                    {formFields.map((field) => (
-                                        <motion.div key={field.name} variants={fieldVariants}>
-                                            <FormField
-                                                control={form.control}
-                                                name={field.name}
-                                                render={({ field: formField }) => (
-                                                    <FormItem>
-                                                        <FormLabel className="flex items-center">
-                                                            {field.icon}
-                                                            <span className="mr-1">{field.label}</span>
-                                                        </FormLabel>
-                                                        <FormControl>
-                                                            {field.isTextArea ? (
-                                                                <Textarea
-                                                                    placeholder={field.placeholder}
-                                                                    className="resize-none"
-                                                                    {...formField}
-                                                                />
-                                                            ) : (
-                                                                <Input
-                                                                    placeholder={field.placeholder}
-                                                                    {...formField}
-                                                                />
-                                                            )}
-                                                        </FormControl>
-                                                        {field.description && (
-                                                            <FormDescription>
-                                                                {field.description}
-                                                            </FormDescription>
-                                                        )}
-                                                        <FormMessage />
-                                                    </FormItem>
-                                                )}
-                                            />
-                                        </motion.div>
-                                    ))}
-
-                                    <motion.div
-                                        variants={fieldVariants}
-                                        className="flex justify-end space-x-4 rtl:space-x-reverse pt-4"
-                                    >
-                                        <Button
-                                            type="button"
-                                            variant="outline"
-                                            onClick={() => navigate(-1)}
-                                        >
-                                            إلغاء
-                                        </Button>
-                                        <Button
-                                            type="submit"
-                                            disabled={loading}
-                                            className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"
-                                        >
-                                            {loading ? (
-                                                <>
-                                                    <Loader2 className="ml-2 h-4 w-4 animate-spin" />
-                                                    جاري الحفظ...
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <Save className="ml-2 h-4 w-4" />
-                                                    حفظ التغييرات
-                                                </>
-                                            )}
-                                        </Button>
-                                    </motion.div>
-                                </motion.div>
-                            </form>
-                        </Form>
-                    )}
-                </CardContent>
-            </Card>
-        </div>
+        <>
+            <div className="container mx-auto py-6 space-y-6" dir="rtl">
+                <PageHeader 
+                    title={`تعديل بيانات العميل: ${currentClient?.clients_name || ""}`}
+                    description="قم بتعديل معلومات العميل"
+                    actions={
+                        <Button 
+                            variant="outline" 
+                            onClick={() => navigate("/clients")}
+                            className="gap-2"
+                        >
+                            <ArrowRight className="h-4 w-4" />
+                            العودة إلى قائمة العملاء
+                        </Button>
+                    }
+                />
+                
+                <ClientForm 
+                    clientId={id} 
+                    onSuccess={() => navigate("/clients")} 
+                />
+            </div>
+        </>
     )
 } 
