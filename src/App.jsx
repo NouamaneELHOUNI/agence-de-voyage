@@ -1,6 +1,7 @@
 import React from 'react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
-import { Index, Login, ForgetPassword, Dashboard, Setting, NotFound404, 
+import { Landing, Login, ForgetPassword, Dashboard, Setting, NotFound404, 
+  Users, AddUser, EditUser, ShowUser,
   Clients, AddClient, EditClient, ShowClient, 
   Flights, AddFlight, EditFlight, ShowFlight, 
   Hotels, AddHotel, EditHotel, ShowHotel,
@@ -13,15 +14,17 @@ import PrivateRoute from "@/routes/PrivateRoute";
 import PublicRoute from "@/routes/PublicRoute";
 import { ThemeProvider } from '@/hooks/useTheme'
 import { Toaster } from '@/components/ui/toaster'
+import { FontProvider } from '@/hooks/useFont'
 
 function App() {
   return (
     <ThemeProvider>
+      <FontProvider>
       <Router>
         <Routes>
           {/* Public routes */}
           <Route element={<PublicRoute />}>
-            <Route path='/' element={<Index />} />
+            <Route path='/' element={<Landing />} />
             <Route path='/login' element={<Login />} />
             <Route path='/forget-password' element={<ForgetPassword />} />
           </Route>
@@ -30,6 +33,11 @@ function App() {
             <Route element={<PrivateRoute />}>
               <Route path='/dashboard' element={<Dashboard />} />
               <Route path='/dashboard/settings' element={<Setting />} />
+              {/* User Module */}
+              <Route path='/dashboard/users' element={<Users />} />
+              <Route path='/dashboard/users/add' element={<AddUser />} />
+              <Route path='/dashboard/users/edit/:id' element={<EditUser />} />
+              <Route path='/dashboard/users/:id' element={<ShowUser />} />
               {/* Client Module */}
               <Route path='/dashboard/clients' element={<Clients />} />
               <Route path='/dashboard/clients/add' element={<AddClient />} />
@@ -72,6 +80,7 @@ function App() {
         </Routes>
       </Router>
       <Toaster />
+      </FontProvider>
     </ThemeProvider>
   )
 }

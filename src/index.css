@@ -1,5 +1,7 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+@import url("https://fonts.googleapis.com/css2?family=Cairo&family=Tajawal&family=Noto+Kufi+Arabic&family=IBM+Plex+Sans+Arabic&family=Almarai&family=Readex+Pro&display=swap");
+
 
 @custom-variant dark (&:is(.dark *));
 

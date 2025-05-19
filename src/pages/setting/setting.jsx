@@ -1,8 +1,7 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { ProfileForm } from "./components/profileForm"
-import { AccountForm } from "./components/accountForm"
-import { NotificationsForm } from "./components/notificationsForm"
+import { Security } from "./components/security"
 import { AppearanceForm } from "./components/appearanceForm"
 
 export default function SettingsPage() {
@@ -16,8 +15,7 @@ export default function SettingsPage() {
             <Tabs defaultValue="profile" className="space-y-4" dir="rtl">
                 <TabsList>
                     <TabsTrigger value="profile">الملف الشخصي</TabsTrigger>
-                    <TabsTrigger value="account">الحساب</TabsTrigger>
-                    <TabsTrigger value="notifications">الإشعارات</TabsTrigger>
+                    <TabsTrigger value="security">الأمان</TabsTrigger>
                     <TabsTrigger value="appearance">المظهر</TabsTrigger>
                 </TabsList>
 
@@ -36,23 +34,11 @@ export default function SettingsPage() {
                 <TabsContent value="account">
                     <Card>
                         <CardHeader>
-                            <CardTitle>الحساب</CardTitle>
+                            <CardTitle>الأمان</CardTitle>
                             <CardDescription>قم بتحديث إعدادات حسابك وتفضيلات الأمان.</CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <AccountForm />
-                        </CardContent>
-                    </Card>
-                </TabsContent>
-
-                <TabsContent value="notifications">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>الإشعارات</CardTitle>
-                            <CardDescription>قم بتكوين كيفية تلقي الإشعارات.</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <NotificationsForm />
+                            <Security />
                         </CardContent>
                     </Card>
                 </TabsContent>

@@ -3,7 +3,7 @@ import { Link } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useToast } from "@/components/ui/use-toast"
-import useClientStore from "@/store/clientStore"
+import useUsersStore from "@/store/usersStore"
 import { Search, Plus, UserX, Edit, Eye, Trash2, UserCheck } from "lucide-react"
 import {
     Table,
@@ -31,22 +31,22 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
 
-export default function Clients() {
-    const { clients, loading, error, fetchClients, deleteClient } = useClientStore()
+export default function Users() {
+    const { users, loading, error, fetchUsers, deleteUser } = useUsersStore()
     const [searchTerm, setSearchTerm] = useState("")
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
-    const [clientToDelete, setClientToDelete] = useState(null)
+    const [userToDelete, setUserToDelete] = useState(null)
     const [isLoadingMore, setIsLoadingMore] = useState(false)
     const { toast } = useToast()
 
     useEffect(() => {
-        fetchClients(10, true)
-    }, [fetchClients])
+        fetchUsers(10, true)
+    }, [fetchUsers])
 
     const handleLoadMore = async () => {
         if (!loading && !isLoadingMore) {
             setIsLoadingMore(true)
-            await fetchClients(10)
+            await fetchUsers(10)
             setIsLoadingMore(false)
         }
     }
@@ -55,41 +55,42 @@ export default function Clients() {
         setSearchTerm(e.target.value)
     }
 
-    const openDeleteDialog = (client) => {
-        setClientToDelete(client)
+    const openDeleteDialog = (user) => {
+        setUserToDelete(user)
         setIsDeleteDialogOpen(true)
     }
 
-    const handleDeleteClient = async () => {
-        if (clientToDelete) {
-            const result = await deleteClient(clientToDelete.id)
+    const handleDeleteUser = async () => {
+        if (userToDelete) {
+            const result = await deleteUser(userToDelete.id)
 
             if (result.success) {
                 toast({
                     title: "تم الحذف بنجاح",
-                    description: "تم حذف العميل بنجاح",
+                    description: "تم حذف المستخدم بنجاح",
                 })
             } else {
                 toast({
                     variant: "destructive",
                     title: "خطأ في الحذف",
-                    description: result.error || "حدث خطأ أثناء حذف العميل",
+                    description: result.error || "حدث خطأ أثناء حذف المستخدم",
                 })
             }
             setIsDeleteDialogOpen(false)
-            setClientToDelete(null)
+            setUserToDelete(null)
         }
     }
 
-    const filteredClients = clients.filter((client) => {
+    const filteredUsers = users.filter((user) => {
         if (!searchTerm) return true
         const search = searchTerm.toLowerCase()
         return (
-            client.clients_name?.toLowerCase().includes(search) ||
-            client.clients_email?.toLowerCase().includes(search) ||
-            client.clients_tel?.includes(search) ||
-            client.clients_city?.toLowerCase().includes(search) ||
-            client.clients_country?.toLowerCase().includes(search)
+            `${user.first_name} ${user.last_name}`.toLowerCase().includes(search) ||
+            user.username?.toLowerCase().includes(search) ||
+            user.userEmail?.toLowerCase().includes(search) ||
+            user.userTel?.includes(search) ||
+            user.city_agency?.toLowerCase().includes(search) ||
+            user.userRole?.toLowerCase().includes(search)
         )
     })
 
@@ -101,6 +102,9 @@ export default function Clients() {
             case "inactive":
             case "غير نشط":
                 return <Badge variant="outline">غير نشط</Badge>
+            case "suspended":
+            case "معلق":
+                return <Badge variant="destructive">معلق</Badge>
             case "pending":
             case "قيد الانتظار":
                 return <Badge variant="secondary">قيد الانتظار</Badge>
@@ -109,27 +113,46 @@ export default function Clients() {
         }
     }
 
+    const getRoleBadge = (role) => {
+        switch (role?.toLowerCase()) {
+            case "admin":
+            case "مدير":
+                return <Badge className="bg-blue-500">مدير</Badge>
+            case "manager":
+            case "مشرف":
+                return <Badge className="bg-purple-500">مشرف</Badge>
+            case "agent":
+            case "وكيل":
+                return <Badge className="bg-orange-500">وكيل</Badge>
+            case "user":
+            case "مستخدم":
+                return <Badge>مستخدم</Badge>
+            default:
+                return <Badge variant="outline">{role || "غير محدد"}</Badge>
+        }
+    }
+
     return (
         <div className="container mx-auto py-6">
             <div className="flex justify-between items-center mb-6">
-                <h1 className="text-3xl font-bold">العملاء</h1>
+                <h1 className="text-3xl font-bold">المستخدمين</h1>
                 <Button asChild>
-                    <Link to="/dashboard/clients/add">
-                        <Plus className="w-4 h-4 mr-2" /> إضافة عميل
+                    <Link to="/dashboard/users/add">
+                        <Plus className="w-4 h-4 mr-2" /> إضافة مستخدم
                     </Link>
                 </Button>
             </div>
 
             <Card className="mb-6">
                 <CardHeader>
-                    <CardTitle>قائمة العملاء</CardTitle>
+                    <CardTitle>قائمة المستخدمين</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <div className="mb-4">
                         <div className="relative">
                             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
                             <Input
-                                placeholder="البحث عن العملاء..."
+                                placeholder="البحث عن المستخدمين..."
                                 className="pl-10 text-right"
                                 value={searchTerm}
                                 onChange={handleSearch}
@@ -148,9 +171,10 @@ export default function Clients() {
                             <TableHeader>
                                 <TableRow>
                                     <TableHead className="text-right">الاسم</TableHead>
+                                    <TableHead className="text-right">اسم المستخدم</TableHead>
                                     <TableHead className="text-right">البريد الإلكتروني</TableHead>
-                                    <TableHead className="text-right">الهاتف</TableHead>
-                                    <TableHead className="text-right">المدينة</TableHead>
+                                    <TableHead className="text-right">الصلاحية</TableHead>
+                                    <TableHead className="text-right">الوكالة</TableHead>
                                     <TableHead className="text-right">الحالة</TableHead>
                                     <TableHead className="text-right">الإجراءات</TableHead>
                                 </TableRow>
@@ -162,19 +186,20 @@ export default function Clients() {
                                         .map((_, index) => (
                                             <TableRow key={index}>
                                                 <TableCell><Skeleton className="h-6 w-[150px]" /></TableCell>
-                                                <TableCell><Skeleton className="h-6 w-[200px]" /></TableCell>
                                                 <TableCell><Skeleton className="h-6 w-[120px]" /></TableCell>
+                                                <TableCell><Skeleton className="h-6 w-[200px]" /></TableCell>
+                                                <TableCell><Skeleton className="h-6 w-[100px]" /></TableCell>
                                                 <TableCell><Skeleton className="h-6 w-[100px]" /></TableCell>
                                                 <TableCell><Skeleton className="h-6 w-[80px]" /></TableCell>
                                                 <TableCell><Skeleton className="h-8 w-[100px]" /></TableCell>
                                             </TableRow>
                                         ))
-                                ) : filteredClients.length === 0 ? (
+                                ) : filteredUsers.length === 0 ? (
                                     <TableRow>
-                                        <TableCell colSpan={6} className="text-center h-32">
+                                        <TableCell colSpan={7} className="text-center h-32">
                                             <div className="flex flex-col items-center justify-center text-muted-foreground">
                                                 <UserX size={48} className="mb-2" />
-                                                <p>لا يوجد عملاء متاحين</p>
+                                                <p>لا يوجد مستخدمين متاحين</p>
                                                 {searchTerm && (
                                                     <p className="text-sm">
                                                         لا توجد نتائج لـ "{searchTerm}"
@@ -184,18 +209,23 @@ export default function Clients() {
                                         </TableCell>
                                     </TableRow>
                                 ) : (
-                                    filteredClients.map((client) => (
-                                        <TableRow key={client.id}>
+                                    filteredUsers.map((user) => (
+                                        <TableRow key={user.id}>
                                             <TableCell className="font-medium">
-                                                {client.clients_name || "-"}
+                                                {`${user.first_name} ${user.last_name}` || "-"}
+                                            </TableCell>
+                                            <TableCell>
+                                                {user.username || "-"}
                                             </TableCell>
                                             <TableCell dir="ltr" className="text-right">
-                                                {client.clients_email || "-"}
+                                                {user.userEmail || "-"}
                                             </TableCell>
-                                            <TableCell>{client.clients_tel || "-"}</TableCell>
-                                            <TableCell>{client.clients_city || "-"}</TableCell>
                                             <TableCell>
-                                                {getStatusBadge(client.clients_status)}
+                                                {getRoleBadge(user.userRole)}
+                                            </TableCell>
+                                            <TableCell>{user.city_agency || "-"}</TableCell>
+                                            <TableCell>
+                                                {getStatusBadge(user.accountStatus)}
                                             </TableCell>
                                             <TableCell>
                                                 <DropdownMenu dir="rtl">
@@ -209,20 +239,20 @@ export default function Clients() {
                                                     </DropdownMenuTrigger>
                                                     <DropdownMenuContent align="end">
                                                         <DropdownMenuItem asChild>
-                                                            <Link to={`/dashboard/clients/${client.id}`}>
+                                                            <Link to={`/dashboard/users/${user.id}`}>
                                                                 <Eye className="ml-2 h-4 w-4" />
                                                                 عرض التفاصيل
                                                             </Link>
                                                         </DropdownMenuItem>
                                                         <DropdownMenuItem asChild>
-                                                            <Link to={`/dashboard/clients/edit/${client.id}`}>
+                                                            <Link to={`/dashboard/users/edit/${user.id}`}>
                                                                 <Edit className="ml-2 h-4 w-4" />
                                                                 تعديل
                                                             </Link>
                                                         </DropdownMenuItem>
                                                         <DropdownMenuItem
                                                             className="text-destructive focus:text-destructive"
-                                                            onClick={() => openDeleteDialog(client)}
+                                                            onClick={() => openDeleteDialog(user)}
                                                         >
                                                             <Trash2 className="ml-2 h-4 w-4" />
                                                             حذف
@@ -237,7 +267,7 @@ export default function Clients() {
                         </Table>
                     </div>
 
-                    {clients.length > 0 && !loading && !searchTerm && (
+                    {users.length > 0 && !loading && !searchTerm && (
                         <div className="mt-4 flex justify-center">
                             <Button
                                 variant="outline"
@@ -257,9 +287,9 @@ export default function Clients() {
                     <DialogHeader>
                         <DialogTitle>تأكيد الحذف</DialogTitle>
                         <DialogDescription>
-                            هل أنت متأكد من رغبتك في حذف العميل:{" "}
+                            هل أنت متأكد من رغبتك في حذف المستخدم:{" "}
                             <span className="font-bold text-foreground">
-                                {clientToDelete?.clients_name}
+                                {userToDelete ? `${userToDelete.first_name} ${userToDelete.last_name}` : ""}
                             </span>
                             ؟ هذا الإجراء لا يمكن التراجع عنه.
                         </DialogDescription>
@@ -275,7 +305,7 @@ export default function Clients() {
                         <Button
                             type="button"
                             variant="destructive"
-                            onClick={handleDeleteClient}
+                            onClick={handleDeleteUser}
                         >
                             حذف
                         </Button>

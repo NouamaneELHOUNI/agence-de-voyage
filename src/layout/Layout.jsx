@@ -29,17 +29,17 @@ const sidebarItems = [
     // User Management
     {
         title: "المستخدمين",
-        url: "/users",
+        url: "/dashboard/users",
         icon: Users,
         category: "إدارة المستخدمين",
         items: [
             {
                 title: "جميع المستخدمين",
-                url: "/users",
+                url: "/dashboard/users",
             },
             {
                 title: "إضافة مستخدم",
-                url: "/users/add",
+                url: "/dashboard/users/add",
             }
         ]
     },

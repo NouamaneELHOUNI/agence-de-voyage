@@ -77,7 +77,7 @@ export function AppSidebar({ items, footerItems, ...props }) {
                                     <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
                                         <GalleryVerticalEnd className="size-4" />
                                     </div>
-                                    <div className="flex gap-0.5 leading-none justify-center items-center gap-2">
+                                    <div className="flex leading-none justify-center items-center gap-2">
                                         <span className="font-semibold text-lg">وكالة السفر</span>
                                         <span className="">v1.0.0</span>
                                     </div>

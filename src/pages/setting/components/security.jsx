@@ -1,4 +1,4 @@
-export function AccountForm() {
+export function Security() {
     return (
         <div>الحساب</div>
     )

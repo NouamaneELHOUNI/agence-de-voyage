@@ -17,31 +17,31 @@ import {
 import { db } from "@/lib/firebaseConfig";
 import useAuthStore from "./authStore";
 
-const COLLECTION_NAME = "clients";
+const COLLECTION_NAME = "users";
 
 const initialState = {
-  clients: [],
-  currentClient: null,
+  users: [],
+  currentUser: null,
   lastVisible: null,
   loading: false,
   error: null,
 };
 
-const useClientStore = create((set, get) => ({
+const useUsersStore = create((set, get) => ({
   ...initialState,
 
   // Reset state
   reset: () => set(initialState),
 
-  // Create a new client
-  createClient: async (clientData) => {
+  // Create a new user
+  createUser: async (userData) => {
     set({ loading: true, error: null });
     try {
       // Get current user from auth store
       const user = useAuthStore.getState().user;
 
       const docRef = await addDoc(collection(db, COLLECTION_NAME), {
-        ...clientData,
+        ...userData,
         created_by: user
           ? {
               uid: user.uid,
@@ -53,9 +53,9 @@ const useClientStore = create((set, get) => ({
         updatedAt: serverTimestamp(),
       });
 
-      const newClient = {
+      const newUser = {
         id: docRef.id,
-        ...clientData,
+        ...userData,
         created_by: user
           ? {
               uid: user.uid,
@@ -68,85 +68,85 @@ const useClientStore = create((set, get) => ({
       };
 
       set((state) => ({
-        clients: [newClient, ...state.clients],
+        users: [newUser, ...state.users],
         loading: false,
       }));
 
-      return { success: true, data: newClient };
+      return { success: true, data: newUser };
     } catch (error) {
-      console.error("Error creating client:", error);
+      console.error("Error creating user:", error);
       set({
         loading: false,
-        error: "حدث خطأ أثناء إنشاء العميل. يرجى المحاولة مرة أخرى.",
+        error: "حدث خطأ أثناء إنشاء المستخدم. يرجى المحاولة مرة أخرى.",
       });
       return { success: false, error: error.message };
     }
   },
 
-  // Fetch a single client by ID
-  fetchClient: async (clientId) => {
-    set({ loading: true, error: null, currentClient: null });
+  // Fetch a single user by ID
+  fetchUser: async (userId) => {
+    set({ loading: true, error: null, currentUser: null });
     try {
-      const docRef = doc(db, COLLECTION_NAME, clientId);
+      const docRef = doc(db, COLLECTION_NAME, userId);
       const docSnap = await getDoc(docRef);
 
       if (docSnap.exists()) {
-        const clientData = {
+        const userData = {
           id: docSnap.id,
           ...docSnap.data(),
           createdAt: docSnap.data().createdAt?.toDate?.() || new Date(),
           updatedAt: docSnap.data().updatedAt?.toDate?.() || new Date(),
         };
 
-        set({ currentClient: clientData, loading: false });
-        return { success: true, data: clientData };
+        set({ currentUser: userData, loading: false });
+        return { success: true, data: userData };
       } else {
         set({
           loading: false,
-          error: "لم يتم العثور على العميل",
+          error: "لم يتم العثور على المستخدم",
         });
-        return { success: false, error: "لم يتم العثور على العميل" };
+        return { success: false, error: "لم يتم العثور على المستخدم" };
       }
     } catch (error) {
-      console.error("Error fetching client:", error);
+      console.error("Error fetching user:", error);
       set({
         loading: false,
-        error: "حدث خطأ أثناء استرجاع بيانات العميل. يرجى المحاولة مرة أخرى.",
+        error: "حدث خطأ أثناء استرجاع بيانات المستخدم. يرجى المحاولة مرة أخرى.",
       });
       return { success: false, error: error.message };
     }
   },
 
-  // Fetch multiple clients
-  fetchClients: async (pageSize = 10, resetPagination = false) => {
+  // Fetch multiple users
+  fetchUsers: async (pageSize = 10, resetPagination = false) => {
     set((state) => ({
       loading: true,
       error: null,
-      clients: resetPagination ? [] : state.clients,
+      users: resetPagination ? [] : state.users,
       lastVisible: resetPagination ? null : state.lastVisible,
     }));
 
     try {
       const { lastVisible } = get();
 
-      let clientsQuery;
+      let usersQuery;
 
       if (lastVisible && !resetPagination) {
-        clientsQuery = query(
+        usersQuery = query(
           collection(db, COLLECTION_NAME),
           orderBy("createdAt", "desc"),
           startAfter(lastVisible),
           limit(pageSize)
         );
       } else {
-        clientsQuery = query(
+        usersQuery = query(
           collection(db, COLLECTION_NAME),
           orderBy("createdAt", "desc"),
           limit(pageSize)
         );
       }
 
-      const querySnapshot = await getDocs(clientsQuery);
+      const querySnapshot = await getDocs(usersQuery);
 
       if (querySnapshot.empty && resetPagination) {
         set({ loading: false });
@@ -155,7 +155,7 @@ const useClientStore = create((set, get) => ({
 
       const lastVisibleDoc = querySnapshot.docs[querySnapshot.docs.length - 1];
 
-      const newClients = querySnapshot.docs.map((doc) => ({
+      const newUsers = querySnapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
         createdAt: doc.data().createdAt?.toDate?.() || new Date(),
@@ -163,56 +163,55 @@ const useClientStore = create((set, get) => ({
       }));
 
       set((state) => ({
-        clients: resetPagination
-          ? newClients
-          : [...state.clients, ...newClients],
+        users: resetPagination ? newUsers : [...state.users, ...newUsers],
         lastVisible: lastVisibleDoc,
         loading: false,
       }));
 
-      return { success: true, data: newClients };
+      return { success: true, data: newUsers };
     } catch (error) {
-      console.error("Error fetching clients:", error);
+      console.error("Error fetching users:", error);
       set({
         loading: false,
-        error: "حدث خطأ أثناء استرجاع قائمة العملاء. يرجى المحاولة مرة أخرى.",
+        error:
+          "حدث خطأ أثناء استرجاع قائمة المستخدمين. يرجى المحاولة مرة أخرى.",
       });
       return { success: false, error: error.message };
     }
   },
 
-  // Fetch clients by user ID
-  fetchUserClients: async (userId, pageSize = 10, resetPagination = false) => {
+  // Fetch users by role
+  fetchUsersByRole: async (role, pageSize = 10, resetPagination = false) => {
     set((state) => ({
       loading: true,
       error: null,
-      clients: resetPagination ? [] : state.clients,
+      users: resetPagination ? [] : state.users,
       lastVisible: resetPagination ? null : state.lastVisible,
     }));
 
     try {
       const { lastVisible } = get();
 
-      let clientsQuery;
+      let usersQuery;
 
       if (lastVisible && !resetPagination) {
-        clientsQuery = query(
+        usersQuery = query(
           collection(db, COLLECTION_NAME),
-          where("created_by.uid", "==", userId),
+          where("userRole", "==", role),
           orderBy("createdAt", "desc"),
           startAfter(lastVisible),
           limit(pageSize)
         );
       } else {
-        clientsQuery = query(
+        usersQuery = query(
           collection(db, COLLECTION_NAME),
-          where("created_by.uid", "==", userId),
+          where("userRole", "==", role),
           orderBy("createdAt", "desc"),
           limit(pageSize)
         );
       }
 
-      const querySnapshot = await getDocs(clientsQuery);
+      const querySnapshot = await getDocs(usersQuery);
 
       if (querySnapshot.empty && resetPagination) {
         set({ loading: false });
@@ -221,7 +220,7 @@ const useClientStore = create((set, get) => ({
 
       const lastVisibleDoc = querySnapshot.docs[querySnapshot.docs.length - 1];
 
-      const newClients = querySnapshot.docs.map((doc) => ({
+      const newUsers = querySnapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
         createdAt: doc.data().createdAt?.toDate?.() || new Date(),
@@ -229,88 +228,87 @@ const useClientStore = create((set, get) => ({
       }));
 
       set((state) => ({
-        clients: resetPagination
-          ? newClients
-          : [...state.clients, ...newClients],
+        users: resetPagination ? newUsers : [...state.users, ...newUsers],
         lastVisible: lastVisibleDoc,
         loading: false,
       }));
 
-      return { success: true, data: newClients };
+      return { success: true, data: newUsers };
     } catch (error) {
-      console.error("Error fetching user clients:", error);
+      console.error("Error fetching users by role:", error);
       set({
         loading: false,
-        error: "حدث خطأ أثناء استرجاع قائمة العملاء. يرجى المحاولة مرة أخرى.",
+        error:
+          "حدث خطأ أثناء استرجاع قائمة المستخدمين. يرجى المحاولة مرة أخرى.",
       });
       return { success: false, error: error.message };
     }
   },
 
-  // Update a client
-  updateClient: async (clientId, clientData) => {
+  // Update a user
+  updateUser: async (userId, userData) => {
     set({ loading: true, error: null });
 
     try {
-      const docRef = doc(db, COLLECTION_NAME, clientId);
+      const docRef = doc(db, COLLECTION_NAME, userId);
       await updateDoc(docRef, {
-        ...clientData,
+        ...userData,
         updatedAt: serverTimestamp(),
       });
 
-      const updatedClient = {
-        id: clientId,
-        ...clientData,
+      const updatedUser = {
+        id: userId,
+        ...userData,
         updatedAt: new Date().toISOString(),
       };
 
       set((state) => ({
-        clients: state.clients.map((client) =>
-          client.id === clientId ? { ...client, ...updatedClient } : client
+        users: state.users.map((user) =>
+          user.id === userId ? { ...user, ...updatedUser } : user
         ),
-        currentClient:
-          state.currentClient?.id === clientId
-            ? { ...state.currentClient, ...updatedClient }
-            : state.currentClient,
+        currentUser:
+          state.currentUser?.id === userId
+            ? { ...state.currentUser, ...updatedUser }
+            : state.currentUser,
         loading: false,
       }));
 
-      return { success: true, data: updatedClient };
+      return { success: true, data: updatedUser };
     } catch (error) {
-      console.error("Error updating client:", error);
+      console.error("Error updating user:", error);
       set({
         loading: false,
-        error: "حدث خطأ أثناء تحديث بيانات العميل. يرجى المحاولة مرة أخرى.",
+        error: "حدث خطأ أثناء تحديث بيانات المستخدم. يرجى المحاولة مرة أخرى.",
       });
       return { success: false, error: error.message };
     }
   },
 
-  // Delete a client
-  deleteClient: async (clientId) => {
+  // Delete a user
+  deleteUser: async (userId) => {
     set({ loading: true, error: null });
 
     try {
-      const docRef = doc(db, COLLECTION_NAME, clientId);
+      const docRef = doc(db, COLLECTION_NAME, userId);
       await deleteDoc(docRef);
 
       set((state) => ({
-        clients: state.clients.filter((client) => client.id !== clientId),
-        currentClient:
-          state.currentClient?.id === clientId ? null : state.currentClient,
+        users: state.users.filter((user) => user.id !== userId),
+        currentUser:
+          state.currentUser?.id === userId ? null : state.currentUser,
         loading: false,
       }));
 
       return { success: true };
     } catch (error) {
-      console.error("Error deleting client:", error);
+      console.error("Error deleting user:", error);
       set({
         loading: false,
-        error: "حدث خطأ أثناء حذف العميل. يرجى المحاولة مرة أخرى.",
+        error: "حدث خطأ أثناء حذف المستخدم. يرجى المحاولة مرة أخرى.",
       });
       return { success: false, error: error.message };
     }
   },
 }));
 
-export default useClientStore;
+export default useUsersStore;
