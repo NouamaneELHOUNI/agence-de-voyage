@@ -62,7 +62,7 @@ export default function AddClientPage() {
                 description: "تمت إضافة العميل الجديد إلى قائمتك",
                 variant: "success",
             })
-            navigate("/clients")
+            navigate("/dashboard/clients")
         } else {
             toast({
                 title: "فشل في إنشاء العميل",

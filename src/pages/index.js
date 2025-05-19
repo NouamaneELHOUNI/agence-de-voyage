@@ -11,6 +11,31 @@ import AddClient from "@/pages/clients/add";
 import EditClient from "@/pages/clients/edit";
 import ShowClient from "@/pages/clients/show";
 
+import Flights from "./flights/flights";
+import AddFlight from "./flights/addFlight";
+import EditFlight from "./flights/editFlight";
+import ShowFlight from "./flights/showFlight";
+
+import Hotels from "./hotels/hotels";
+import AddHotel from "./hotels/addHotel";
+import EditHotel from "./hotels/editHotel";
+import ShowHotel from "./hotels/showHotel";
+
+import Packages from "./packages/packages";
+import AddPackage from "./packages/addPackage";
+import EditPackage from "./packages/editPackage";
+import ShowPackage from "./packages/showPackage";
+
+import Services from "./services/services";
+import AddService from "./services/addService";
+import EditService from "./services/editService";
+import ShowService from "./services/showService";
+
+import Agencies from "./agencies/agencies";
+import AddAgency from "./agencies/addAgency";
+import EditAgency from "./agencies/editAgency";
+import ShowAgency from "./agencies/showAgency";
+
 export {
   Index,
   Login,
@@ -24,4 +49,29 @@ export {
   AddClient,
   EditClient,
   ShowClient,
+
+  Flights,
+  AddFlight,
+  EditFlight,
+  ShowFlight,
+
+  Hotels,
+  AddHotel,
+  EditHotel,
+  ShowHotel,
+
+  Packages,
+  AddPackage,
+  EditPackage,
+  ShowPackage,
+
+  Services,
+  AddService,
+  EditService,
+  ShowService,
+
+  Agencies,
+  AddAgency,
+  EditAgency,
+  ShowAgency,
 };

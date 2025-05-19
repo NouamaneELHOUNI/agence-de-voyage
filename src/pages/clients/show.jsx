@@ -43,7 +43,7 @@ export default function ShowClientPage() {
                     title: "تم حذف العميل بنجاح",
                     variant: "success",
                 })
-                navigate("/clients")
+                navigate("/dashboard/clients")
             } else {
                 toast({
                     title: "فشل في حذف العميل",
@@ -80,7 +80,7 @@ export default function ShowClientPage() {
                     <p>{error}</p>
                     <Button
                         variant="outline"
-                        onClick={() => navigate("/clients")}
+                        onClick={() => navigate("/dashboard/clients")}
                         className="mt-4"
                     >
                         العودة إلى قائمة العملاء
@@ -149,7 +149,7 @@ export default function ShowClientPage() {
                     <UserRound className="h-16 w-16 mx-auto text-muted-foreground/60 mb-4" />
                     <h3 className="text-xl font-medium mb-2">لم يتم العثور على العميل</h3>
                     <p className="text-muted-foreground mb-6">العميل المطلوب غير موجود أو تم حذفه</p>
-                    <Button onClick={() => navigate("/clients")}>
+                    <Button onClick={() => navigate("/dashboard/clients")}>
                         العودة إلى قائمة العملاء
                     </Button>
                 </motion.div>
@@ -225,7 +225,7 @@ export default function ShowClientPage() {
                 <div className="flex items-center space-x-2 rtl:space-x-reverse">
                     <Button
                         variant="outline"
-                        onClick={() => navigate(`/clients/edit/${clientId}`)}
+                        onClick={() => navigate(`/dashboard/clients/edit/${clientId}`)}
                         className="flex items-center"
                     >
                         <Edit className="h-4 w-4 ml-2" />
@@ -326,7 +326,7 @@ export default function ShowClientPage() {
             >
                 <Button
                     variant="outline"
-                    onClick={() => navigate("/clients")}
+                    onClick={() => navigate("/dashboard/clients")}
                 >
                     <ArrowLeft className="h-4 w-4 ml-2" />
                     العودة إلى القائمة

@@ -110,7 +110,7 @@ export default function Clients() {
             >
                 <h1 className="text-2xl font-bold">العملاء</h1>
                 <Button
-                    onClick={() => navigate("/clients/add")}
+                    onClick={() => navigate("/dashboard/clients/add")}
                     className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"
                 >
                     <Plus className="ml-2 h-4 w-4" />
@@ -167,7 +167,7 @@ export default function Clients() {
                                 لا يوجد عملاء متاحين حالياً. انقر على "إضافة عميل" لإنشاء عميل جديد.
                             </p>
                             <Button
-                                onClick={() => navigate("/clients/add")}
+                                onClick={() => navigate("/dashboard/clients/add")}
                                 className="mt-4"
                                 variant="outline"
                             >
@@ -199,7 +199,7 @@ export default function Clients() {
                                                 key={client.id}
                                                 variants={itemVariants}
                                                 className="group hover:bg-muted/50 cursor-pointer"
-                                                onClick={() => navigate(`/clients/${client.id}`)}
+                                                onClick={() => navigate(`/dashboard/clients/${client.id}`)}
                                             >
                                                 <TableCell className="font-medium flex items-center space-x-2 rtl:space-x-reverse py-4">
                                                     <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center">
@@ -232,7 +232,7 @@ export default function Clients() {
                                                             <DropdownMenuItem
                                                                 onClick={(e) => {
                                                                     e.stopPropagation();
-                                                                    navigate(`/clients/${client.id}`);
+                                                                    navigate(`/dashboard/clients/${client.id}`);
                                                                 }}
                                                                 className="flex items-center rtl:space-x-reverse"
                                                             >
@@ -242,7 +242,7 @@ export default function Clients() {
                                                             <DropdownMenuItem
                                                                 onClick={(e) => {
                                                                     e.stopPropagation();
-                                                                    navigate(`/clients/edit/${client.id}`);
+                                                                    navigate(`/dashboard/clients/edit/${client.id}`);
                                                                 }}
                                                                 className="flex items-center rtl:space-x-reverse"
                                                             >

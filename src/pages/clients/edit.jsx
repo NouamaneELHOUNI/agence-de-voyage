@@ -82,7 +82,7 @@ export default function EditClientPage() {
                 description: "تم تحديث بيانات العميل بنجاح",
                 variant: "success",
             })
-            navigate("/clients")
+            navigate("/dashboard/clients")
         } else {
             toast({
                 title: "فشل في تحديث العميل",
@@ -155,7 +155,7 @@ export default function EditClientPage() {
                     <p>{error}</p>
                     <Button
                         variant="outline"
-                        onClick={() => navigate("/clients")}
+                        onClick={() => navigate("/dashboard/clients")}
                         className="mt-4"
                     >
                         العودة إلى قائمة العملاء
